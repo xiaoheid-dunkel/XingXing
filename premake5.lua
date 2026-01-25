@@ -1,48 +1,49 @@
 include "./vendor/premake/premake_customization/solution_items.lua"
 include "Dependencies.lua"
 
-workspace "Hazel"
-	architecture "x86_64"
-	startproject "Hazelnut"
+workspace "XingXing"
+    architecture "x86_64"
+    startproject "XingXingnut"
 
-	configurations
-	{
-		"Debug",
-		"Release",
-		"Dist"
-	}
+    configurations
+    {
+        "Debug",
+        "Release",
+        "Dist"
+    }
 
-	solution_items
-	{
-		".editorconfig"
-	}
+    solution_items
+    {
+        ".editorconfig"
+    }
 
-	flags
-	{
-		"MultiProcessorCompile"
-	}
+    flags
+    {
+        "MultiProcessorCompile"
+    }
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
+-- 恢复标准结构，移除全局的 runtime 强制设置
 group "Dependencies"
-	include "vendor/premake"
-	include "Hazel/vendor/Box2D"
-	include "Hazel/vendor/GLFW"
-	include "Hazel/vendor/Glad"
-	include "Hazel/vendor/msdf-atlas-gen"
-	include "Hazel/vendor/imgui"
-	include "Hazel/vendor/yaml-cpp"
+    include "vendor/premake"
+    include "XingXing/vendor/Box2D"
+    include "XingXing/vendor/GLFW"
+    include "XingXing/vendor/Glad"
+    include "XingXing/vendor/msdf-atlas-gen"
+    include "XingXing/vendor/imgui"
+    include "XingXing/vendor/yaml-cpp"
 group ""
 
 group "Core"
-	include "Hazel"
-	include "Hazel-ScriptCore"
+    include "XingXing"
+    include "XingXing-ScriptCore"
 group ""
 
 group "Tools"
-	include "Hazelnut"
+    include "XingXingnut"
 group ""
 
 group "Misc"
-	include "Sandbox"
+    include "Sandbox"
 group ""
