@@ -35,7 +35,7 @@ project "Sandbox"
 
 	links
 	{
-		"Hazel-ScriptCore"
+		"XingXing-ScriptCore"
 	}
 	
 	filter "configurations:Debug"
@@ -51,5 +51,5 @@ project "Sandbox"
 		symbols "Off"
 
 group "Hazel"
-	include (HazelRootDir .. "/Hazel-ScriptCore")
+	include (HazelRootDir .. "/XingXing-ScriptCore")
 group ""
