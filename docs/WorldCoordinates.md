@@ -234,8 +234,10 @@ private:
 public:
     void UpdatePlayerPosition(const glm::vec3& playerPosition) {
         // 1. 计算玩家所在区块
-        int playerChunkX = CoordinateConverter::WorldToChunkCoord(playerPosition.x);
-        int playerChunkZ = CoordinateConverter::WorldToChunkCoord(playerPosition.z);
+        ChunkCoordinate playerChunk = CoordinateConverter::WorldToChunk(
+            (int)playerPosition.x, (int)playerPosition.z);
+        int playerChunkX = playerChunk.x;
+        int playerChunkZ = playerChunk.z;
         
         // 2. 确定需要加载的区块范围
         std::set<ChunkCoordinate> requiredChunks;
@@ -422,16 +424,16 @@ class CoordinateUtils {
 public:
     // 距离计算
     static float Distance2D(const WorldCoordinate& a, const WorldCoordinate& b) {
-        int dx = a.x - b.x;
-        int dz = a.z - b.z;
-        return sqrt(dx * dx + dz * dz);
+        float dx = (float)(a.x - b.x);
+        float dz = (float)(a.z - b.z);
+        return sqrtf(dx * dx + dz * dz);
     }
     
     static float Distance3D(const WorldCoordinate& a, const WorldCoordinate& b) {
-        int dx = a.x - b.x;
-        int dy = a.y - b.y;
-        int dz = a.z - b.z;
-        return sqrt(dx * dx + dy * dy + dz * dz);
+        float dx = (float)(a.x - b.x);
+        float dy = (float)(a.y - b.y);
+        float dz = (float)(a.z - b.z);
+        return sqrtf(dx * dx + dy * dy + dz * dz);
     }
     
     // 曼哈顿距离（更快）

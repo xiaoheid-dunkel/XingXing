@@ -326,9 +326,9 @@ void Chunk::AddFace(std::vector<Vertex>& vertices,
 #include <cmath>
 
 // Perlin 噪声（简化版本）
-float PerlinNoise(float x, float z, int seed = 0) {
-    // 实际应用中使用完整的 Perlin Noise 库
-    // 这里是简化示例
+// 注意：这是一个简化示例，实际应用中请使用完整的 Perlin Noise 库
+float PerlinNoise(float x, float z) {
+    // 简化示例：使用三角函数模拟噪声
     return sin(x * 0.05f) * cos(z * 0.05f);
 }
 
@@ -397,7 +397,13 @@ void Chunk::GenerateAdvanced() {
             float temperature = PerlinNoise(worldX * 0.005f, worldZ * 0.005f);
             float humidity = PerlinNoise(worldX * 0.005f + 1000, worldZ * 0.005f + 1000);
             
-            BlockType surfaceBlock = DetermineSurfaceBlock(temperature, humidity);
+            // 根据温度和湿度确定表面方块类型
+            BlockType surfaceBlock = BlockType::Grass;
+            if (temperature < -0.3f) {
+                surfaceBlock = BlockType::Stone;  // 寒冷地区：石头
+            } else if (humidity < -0.3f) {
+                surfaceBlock = BlockType::Sand;   // 干燥地区：沙子
+            }
             
             // 填充方块...
             for (int y = 0; y < height; y++) {
