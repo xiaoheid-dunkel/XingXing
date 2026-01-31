@@ -1,9 +1,11 @@
 #pragma once
 
 #include "XingXing/Core/Base.h"
+#include "XingXing/Core/UUID.h"
 #include <glm/glm.hpp>
 #include <vector>
 #include <unordered_map>
+#include <algorithm>
 
 namespace Hazel {
 
