@@ -20,9 +20,25 @@ XingXing 是一个专为独立游戏开发的 **独立引擎**。本项目的初
 
 ## 🚀 核心功能
 * **高性能 2D 批处理渲染器** (基于 Renderer2D)
+* **3D 方块渲染系统** (基于 Renderer3D) - 🆕
+* **透视相机与第一人称控制** - 🆕
 * **MSDF 字体渲染系统**
 * **纹理与精灵图管理**
 * **正交摄像机系统**
+
+### 🎮 3D 功能预览
+XingXing 现已支持 3D 渲染！特别针对类似《Minecraft》的方块沙盒游戏进行了优化。
+
+**新增特性：**
+- 透视相机（PerspectiveCamera）
+- 3D 立方体批量渲染（Renderer3D）
+- 简单的方向光照系统
+- 可运行的 Voxel 世界示例
+
+**快速开始 3D 开发：**
+1. 查看 [3D 升级计划](docs/3D_UPGRADE_PLAN.md)
+2. 阅读 [3D 集成指南](docs/3D_INTEGRATION_GUIDE.md)
+3. 运行 Sandbox 项目查看 VoxelWorldLayer 示例
 
 ---
 
