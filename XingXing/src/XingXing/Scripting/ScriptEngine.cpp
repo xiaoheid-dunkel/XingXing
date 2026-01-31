@@ -21,8 +21,22 @@
 
 namespace Hazel {
 
+	// ==================== 类型映射表 ====================
+	
+	/**
+	 * C# 类型名 -> 脚本字段类型的映射表
+	 * 
+	 * 这个映射表用于将 Mono 返回的类型名（如 "System.Int32"）
+	 * 转换为我们自定义的 ScriptFieldType 枚举。
+	 * 
+	 * 为什么需要这个映射？
+	 * - Mono API 返回的是字符串类型名
+	 * - 我们需要统一的类型标识符用于序列化和编辑器显示
+	 * - 便于在 C++ 和 C# 之间进行类型转换
+	 */
 	static std::unordered_map<std::string, ScriptFieldType> s_ScriptFieldTypeMap =
 	{
+		// .NET 基础类型
 		{ "System.Single", ScriptFieldType::Float },
 		{ "System.Double", ScriptFieldType::Double },
 		{ "System.Boolean", ScriptFieldType::Bool },
@@ -35,6 +49,7 @@ namespace Hazel {
 		{ "System.UInt32", ScriptFieldType::UInt },
 		{ "System.UInt64", ScriptFieldType::ULong },
 
+		// 引擎自定义类型（来自 Hazel-ScriptCore）
 		{ "Hazel.Vector2", ScriptFieldType::Vector2 },
 		{ "Hazel.Vector3", ScriptFieldType::Vector3 },
 		{ "Hazel.Vector4", ScriptFieldType::Vector4 },
@@ -42,23 +57,44 @@ namespace Hazel {
 		{ "Hazel.Entity", ScriptFieldType::Entity },
 	};
 
+	// ==================== 工具函数 ====================
+	
 	namespace Utils {
 
+		/**
+		 * @brief 加载 Mono 程序集
+		 * @param assemblyPath 程序集（DLL）文件路径
+		 * @param loadPDB 是否加载符号文件（.pdb）以支持调试
+		 * @return 加载的程序集，失败返回 nullptr
+		 * 
+		 * 工作流程：
+		 * 1. 读取 DLL 文件到内存
+		 * 2. 使用 Mono API 从内存加载镜像
+		 * 3. 如果需要，加载 PDB 文件以支持断点调试
+		 * 4. 从镜像创建程序集对象
+		 * 
+		 * 为什么从内存加载？
+		 * - 可以更好地控制加载过程
+		 * - 支持从非标准位置加载
+		 * - 便于实现热重载（卸载后重新加载）
+		 */
 		static MonoAssembly* LoadMonoAssembly(const std::filesystem::path& assemblyPath, bool loadPDB = false)
 		{
 			ScopedBuffer fileData = FileSystem::ReadFileBinary(assemblyPath);
 
-			// NOTE: We can't use this image for anything other than loading the assembly because this image doesn't have a reference to the assembly
+			// 注意：此镜像不能用于其他操作，因为它没有程序集的引用
+			// 仅用于从数据创建程序集
 			MonoImageOpenStatus status;
 			MonoImage* image = mono_image_open_from_data_full(fileData.As<char>(), fileData.Size(), 1, &status, 0);
 
 			if (status != MONO_IMAGE_OK)
 			{
 				const char* errorMessage = mono_image_strerror(status);
-				// Log some error message using the errorMessage data
+				// 记录错误信息
 				return nullptr;
 			}
 
+			// 如果是调试模式，尝试加载 PDB 符号文件
 			if (loadPDB)
 			{
 				std::filesystem::path pdbPath = assemblyPath;
@@ -72,6 +108,7 @@ namespace Hazel {
 				}
 			}
 
+			// 从镜像加载程序集
 			std::string pathString = assemblyPath.string();
 			MonoAssembly* assembly = mono_assembly_load_from_full(image, pathString.c_str(), &status, 0);
 			mono_image_close(image);
@@ -79,6 +116,13 @@ namespace Hazel {
 			return assembly;
 		}
 
+		/**
+		 * @brief 打印程序集中的所有类型（调试用）
+		 * @param assembly 要检查的程序集
+		 * 
+		 * 遍历程序集的类型定义表，输出所有类型的命名空间和名称。
+		 * 用于调试和验证程序集是否正确加载。
+		 */
 		void PrintAssemblyTypes(MonoAssembly* assembly)
 		{
 			MonoImage* image = mono_assembly_get_image(assembly);
@@ -96,6 +140,14 @@ namespace Hazel {
 			}
 		}
 
+		/**
+		 * @brief 将 Mono 类型转换为脚本字段类型
+		 * @param monoType Mono 类型对象
+		 * @return 对应的 ScriptFieldType
+		 * 
+		 * 使用类型名查找映射表，将 Mono 类型转换为我们的类型枚举。
+		 * 如果类型未知，返回 ScriptFieldType::None。
+		 */
 		ScriptFieldType MonoTypeToScriptFieldType(MonoType* monoType)
 		{
 			std::string typeName = mono_type_get_name(monoType);
@@ -112,41 +164,80 @@ namespace Hazel {
 
 	}
 
+	// ==================== 脚本引擎数据 ====================
+	
+	/**
+	 * @brief 脚本引擎的内部数据结构
+	 * 
+	 * 使用指针来存储，而不是直接在 ScriptEngine 类中声明静态成员，
+	 * 这样可以更好地控制初始化和销毁顺序。
+	 * 
+	 * 包含的数据：
+	 * - Mono 运行时对象（Domain, Assembly, Image）
+	 * - 脚本类和实例的缓存
+	 * - 文件监视器（用于热重载）
+	 * - 场景上下文
+	 */
 	struct ScriptEngineData
 	{
-		MonoDomain* RootDomain = nullptr;
-		MonoDomain* AppDomain = nullptr;
+		// Mono 运行时域
+		MonoDomain* RootDomain = nullptr;  // 根域，不可卸载
+		MonoDomain* AppDomain = nullptr;   // 应用域，可卸载以支持热重载
 
+		// 核心程序集（Hazel-ScriptCore.dll）
 		MonoAssembly* CoreAssembly = nullptr;
 		MonoImage* CoreAssemblyImage = nullptr;
 
+		// 应用程序集（游戏脚本 DLL）
 		MonoAssembly* AppAssembly = nullptr;
 		MonoImage* AppAssemblyImage = nullptr;
 
+		// 程序集文件路径（用于重载）
 		std::filesystem::path CoreAssemblyFilepath;
 		std::filesystem::path AppAssemblyFilepath;
 
+		// Entity 基类（所有脚本必须继承自它）
 		ScriptClass EntityClass;
 
-		std::unordered_map<std::string, Ref<ScriptClass>> EntityClasses;
-		std::unordered_map<UUID, Ref<ScriptInstance>> EntityInstances;
-		std::unordered_map<UUID, ScriptFieldMap> EntityScriptFields;
+		// 脚本类和实例的缓存
+		std::unordered_map<std::string, Ref<ScriptClass>> EntityClasses;     // 类名 -> 脚本类
+		std::unordered_map<UUID, Ref<ScriptInstance>> EntityInstances;       // UUID -> 脚本实例
+		std::unordered_map<UUID, ScriptFieldMap> EntityScriptFields;         // UUID -> 字段映射（序列化用）
 
+		// 文件监视器，检测脚本 DLL 的变化以触发热重载
 		Scope<filewatch::FileWatch<std::string>> AppAssemblyFileWatcher;
 		bool AssemblyReloadPending = false;
 
+		// 调试支持（仅在 Debug 模式下启用）
 #ifdef HZ_DEBUG
 		bool EnableDebugging = true;
 #else
 		bool EnableDebugging = false;
 #endif
-		// Runtime
 
+		// 运行时场景上下文（用于脚本访问场景数据）
 		Scene* SceneContext = nullptr;
 	};
 
+	// 全局脚本引擎数据实例
 	static ScriptEngineData* s_Data = nullptr;
 
+	// ==================== 文件监视器回调 ====================
+	
+	/**
+	 * @brief 程序集文件系统事件回调
+	 * @param path 文件路径
+	 * @param change_type 变化类型
+	 * 
+	 * 当检测到脚本 DLL 文件被修改时：
+	 * 1. 设置重载标志
+	 * 2. 停止文件监视器（避免重复触发）
+	 * 3. 提交重载任务到主线程
+	 * 
+	 * 为什么要提交到主线程？
+	 * - Mono API 不是线程安全的
+	 * - 程序集加载/卸载必须在主线程执行
+	 */
 	static void OnAppAssemblyFileSystemEvent(const std::string& path, const filewatch::Event change_type)
 	{
 		if (!s_Data->AssemblyReloadPending && change_type == filewatch::Event::modified)
@@ -161,6 +252,20 @@ namespace Hazel {
 		}
 	}
 
+	// ==================== 公共 API 实现 ====================
+	
+	/**
+	 * @brief 初始化脚本引擎
+	 * 
+	 * 启动流程：
+	 * 1. 分配引擎数据结构
+	 * 2. 初始化 Mono 运行时
+	 * 3. 注册 C++ → C# 函数绑定
+	 * 4. 加载核心脚本程序集
+	 * 5. 加载应用脚本程序集
+	 * 6. 扫描并缓存所有脚本类
+	 * 7. 注册组件类型
+	 */
 	void ScriptEngine::Init()
 	{
 		s_Data = new ScriptEngineData();
@@ -168,6 +273,7 @@ namespace Hazel {
 		InitMono();
 		ScriptGlue::RegisterFunctions();
 
+		// 加载核心脚本库
 		bool status = LoadAssembly("Resources/Scripts/Hazel-ScriptCore.dll");
 		if (!status)
 		{
@@ -175,6 +281,7 @@ namespace Hazel {
 			return;
 		}
 		
+		// 加载游戏脚本
 		auto scriptModulePath = Project::GetAssetDirectory() / Project::GetActive()->GetConfig().ScriptModulePath;
 		status = LoadAppAssembly(scriptModulePath);
 		if (!status)
@@ -183,14 +290,23 @@ namespace Hazel {
 			return;
 		}
 
+		// 扫描程序集，加载所有脚本类
 		LoadAssemblyClasses();
 
+		// 注册组件，使脚本能够使用 HasComponent<T>()
 		ScriptGlue::RegisterComponents();
 
-		// Retrieve and instantiate class
+		// 获取 Entity 基类的引用
 		s_Data->EntityClass = ScriptClass("Hazel", "Entity", true);
 	}
 
+	/**
+	 * @brief 关闭脚本引擎
+	 * 
+	 * 清理流程：
+	 * 1. 关闭 Mono 运行时
+	 * 2. 释放引擎数据
+	 */
 	void ScriptEngine::Shutdown()
 	{
 		ShutdownMono();
