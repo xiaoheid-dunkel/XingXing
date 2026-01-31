@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SceneCamera.h"
+#include "SandboxComponents.h"
 #include "XingXing/Core/UUID.h"
 #include "XingXing/Renderer/Texture.h"
 #include "XingXing/Renderer/Font.h"
@@ -179,6 +180,8 @@ namespace Hazel {
 		ComponentGroup<TransformComponent, SpriteRendererComponent,
 			CircleRendererComponent, CameraComponent, ScriptComponent,
 			NativeScriptComponent, Rigidbody2DComponent, BoxCollider2DComponent,
-			CircleCollider2DComponent, TextComponent>;
+			CircleCollider2DComponent, TextComponent, VoxelComponent, ChunkComponent,
+			WorldComponent, PlayerInventoryComponent, BlockInteractionComponent,
+			TerrainGeneratorComponent>;
 
 }
