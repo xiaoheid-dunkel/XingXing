@@ -568,13 +568,6 @@ namespace Hazel {
 		 * 
 		 * 用于日志输出和调试。
 		 */
-		/**
-		 * @brief 将脚本字段类型转换为字符串
-		 * @param fieldType 字段类型枚举
-		 * @return 类型名称字符串
-		 * 
-		 * 用于日志输出和调试。
-		 */
 		inline const char* ScriptFieldTypeToString(ScriptFieldType fieldType)
 		{
 			switch (fieldType)
