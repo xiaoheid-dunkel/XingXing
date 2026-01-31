@@ -23,6 +23,42 @@ XingXing 是一个专为独立游戏开发的 **独立引擎**。本项目的初
 * **MSDF 字体渲染系统**
 * **纹理与精灵图管理**
 * **正交摄像机系统**
+* **🆕 方块沙盒游戏系统** - 支持类似 Minecraft 的方块世界
+
+---
+
+## 🧱 方块沙盒游戏系统
+
+XingXing 引擎现已支持方块沙盒游戏开发！包含以下功能：
+
+### 核心系统
+- ✅ **方块系统（Block System）** - 定义各种方块类型和属性
+- ✅ **区块系统（Chunk System）** - 高效的世界分块管理（16x16方块/区块）
+- ✅ **世界管理（World Management）** - 动态区块加载/卸载
+- ✅ **自动地形生成** - 简单的程序化地形生成
+- ✅ **玩家物理** - 重力、碰撞检测、跳跃
+- ✅ **方块交互** - 放置和破坏方块
+
+### 快速开始
+查看 `BLOCK_SANDBOX_GUIDE.md` 了解详细的改造指南，包括：
+- 方块沙盒游戏的核心概念
+- 完整的实现步骤
+- 代码示例和最佳实践
+- 性能优化建议
+- 进阶功能（流体、光照等）
+
+### 示例代码
+在 `Sandbox/src/BlockSandboxLayer.cpp` 中查看完整的方块沙盒演示：
+```cpp
+// 创建世界
+m_World = Hazel::CreateRef<Hazel::World>();
+
+// 放置方块
+m_World->SetBlock(x, y, Hazel::BLOCK_STONE);
+
+// 获取方块
+Hazel::BlockID block = m_World->GetBlock(x, y);
+```
 
 ---
 
