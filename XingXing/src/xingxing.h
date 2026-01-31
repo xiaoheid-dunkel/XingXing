@@ -28,6 +28,7 @@
 // ---Renderer------------------------
 #include "XingXing/Renderer/Renderer.h"
 #include "XingXing/Renderer/Renderer2D.h"
+#include "XingXing/Renderer/Renderer3D.h"
 #include "XingXing/Renderer/RenderCommand.h"
 
 #include "XingXing/Renderer/Buffer.h"
@@ -37,4 +38,5 @@
 #include "XingXing/Renderer/VertexArray.h"
 
 #include "XingXing/Renderer/OrthographicCamera.h"
+#include "XingXing/Renderer/PerspectiveCamera.h"
 // -----------------------------------

@@ -3,6 +3,7 @@
 
 #include "Sandbox2D.h"
 #include "ExampleLayer.h"
+#include "VoxelWorldLayer.h"
 
 class Sandbox : public Hazel::Application
 {
@@ -11,7 +12,8 @@ public:
 		: Hazel::Application(specification)
 	{
 		// PushLayer(new ExampleLayer());
-		PushLayer(new Sandbox2D());
+		// PushLayer(new Sandbox2D());
+		PushLayer(new VoxelWorldLayer()); // 3D Voxel World Demo
 	}
 
 	~Sandbox()
