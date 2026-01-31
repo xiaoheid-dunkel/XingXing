@@ -122,10 +122,11 @@ namespace Hazel {
 		WorldComponent() = default;
 		WorldComponent(const WorldComponent&) = default;
 		
-		// Hash function for chunk position
+		// Hash function for chunk position - uses prime number multiplication to avoid collisions
 		static int64_t HashChunkPos(const glm::ivec3& pos)
 		{
-			return ((int64_t)pos.x << 32) | ((int64_t)pos.y << 16) | (int64_t)pos.z;
+			// Use prime number multiplication for better distribution
+			return (int64_t)pos.x * 73856093 ^ (int64_t)pos.y * 19349663 ^ (int64_t)pos.z * 83492791;
 		}
 		
 		bool IsChunkLoaded(const glm::ivec3& chunkPos) const

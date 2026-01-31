@@ -395,5 +395,5 @@ void CreateDroppedItem(const glm::vec3& position, BlockType type)
 
 有关更多信息，请参阅：
 - [XingXing 引擎文档](../README.md)
-- [API 参考](./API_Reference.md)
 - [示例项目](../Sandbox/)
+- [快速参考](./SANDBOX_QUICK_REFERENCE.md)
