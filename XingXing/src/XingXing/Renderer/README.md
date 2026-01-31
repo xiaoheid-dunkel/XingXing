@@ -129,7 +129,10 @@ Renderer2D::DrawString("Hello, XingXing!", font, transform, textParams);
 
 ## 📝 注意事项
 
-1. **命名空间**：渲染系统代码位于 `Hazel` 命名空间（源自 Hazel2D）
+1. **命名空间**：渲染系统代码位于 `Hazel` 命名空间。这是保留 Hazel2D 原始命名空间的设计选择，以便：
+   - 保持与 Hazel2D 社区的兼容性，便于参考和学习
+   - 明确标识哪些代码源自 Hazel2D，哪些是 XingXing 的扩展
+   - 简化未来从 Hazel2D 上游合并更新的流程
 2. **线程安全**：渲染命令应在主线程调用
 3. **资源生命周期**：使用智能指针 (Ref/Scope) 管理资源
 4. **批次限制**：单个批次有顶点和纹理槽位限制
@@ -140,6 +143,22 @@ Renderer2D::DrawString("Hello, XingXing!", font, transform, textParams);
 - **Scene/** - 场景管理系统
 - **Core/** - 核心系统和智能指针
 
-## 📚 扩展阅读
+## 📚 与 Hazel2D 的关系
 
-本渲染系统基于 [Hazel2D](https://github.com/TheCherno/Hazel) 引擎架构开发，针对 XingXing 引擎的特定需求进行了优化和扩展。
+本渲染系统基于 [Hazel2D](https://github.com/TheCherno/Hazel) 引擎架构开发。XingXing 在 Hazel2D 优秀的基础上进行了以下改进和扩展：
+
+### 保留的核心组件
+- 渲染器架构和批处理系统
+- OpenGL 抽象层
+- 基础的 2D 渲染原语
+
+### XingXing 的优化和扩展
+- 针对游戏特定需求的性能优化
+- 扩展的文本渲染功能（MSDF 支持）
+- 增强的场景管理集成
+- 针对中文字体渲染的优化
+
+### 许可和使用
+XingXing 遵循严格的非商业许可协议。本项目开源的目的是为模组开发者提供参考，便于理解游戏底层逻辑。详见项目根目录的 LICENSE 文件和 README.md。
+
+感谢 TheCherno 和 Hazel2D 社区提供的优秀基础框架。
