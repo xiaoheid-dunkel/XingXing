@@ -11,6 +11,12 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
+// Forward declaration for BlockWorld
+namespace Hazel {
+	class World;
+	using BlockID = uint16_t;
+}
+
 namespace Hazel {
 
 	struct IDComponent
@@ -170,6 +176,28 @@ namespace Hazel {
 		float LineSpacing = 0.0f;
 	};
 
+	// Block World Components
+
+	struct BlockWorldComponent
+	{
+		Ref<World> WorldInstance;
+
+		BlockWorldComponent() = default;
+		BlockWorldComponent(const BlockWorldComponent&) = default;
+	};
+
+	struct BlockPlayerComponent
+	{
+		float MoveSpeed = 5.0f;
+		float JumpForce = 10.0f;
+		float GravityScale = 1.0f;
+		BlockID SelectedBlock = 1;  // Default to stone
+		float InteractionRange = 5.0f;
+
+		BlockPlayerComponent() = default;
+		BlockPlayerComponent(const BlockPlayerComponent&) = default;
+	};
+
 	template<typename... Component>
 	struct ComponentGroup
 	{
@@ -179,6 +207,6 @@ namespace Hazel {
 		ComponentGroup<TransformComponent, SpriteRendererComponent,
 			CircleRendererComponent, CameraComponent, ScriptComponent,
 			NativeScriptComponent, Rigidbody2DComponent, BoxCollider2DComponent,
-			CircleCollider2DComponent, TextComponent>;
+			CircleCollider2DComponent, TextComponent, BlockWorldComponent, BlockPlayerComponent>;
 
 }
